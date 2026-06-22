@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sales        Sale[]
+  actionLogs   ActionLog[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  color       String           @default("#6b7280")
+  position    Int              @unique
+  isSystem    Boolean          @default(false)
+  users       User[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model RolePermission {
+  roleId     String
+  permission String
+  role       Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  itemTypes ItemType[]
+  createdAt DateTime   @default(now())
+}
+
+model Rarity {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  color     String     @default("#9ca3af")
+  position  Int        @unique
+  itemTypes ItemType[]
+  createdAt DateTime   @default(now())
+}
+
+model ItemType {
+  id             String     @id @default(uuid())
+  name           String
+  imageUrl       String?
+  iconKey        String?
+  categoryId     String
+  category       Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  rarityId       String
+  rarity         Rarity     @relation(fields: [rarityId], references: [id], onDelete: Restrict)
+  weight         Float      @default(0)
+  buyPrice       Int        @default(0)
+  sellPrice      Int        @default(0)
+  unlimitedStock Boolean    @default(false)
+  maxStock       Int?
+  lowStockAlert  Int?
+  stockItems     StockItem?
+  sales          Sale[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([name, categoryId])
+}
+
+model StockItem {
+  id         String   @id @default(uuid())
+  itemTypeId String
+  itemType   ItemType @relation(fields: [itemTypeId], references: [id], onDelete: Cascade)
+  quantity   Int      @default(0)
+  position   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([itemTypeId])
+}
+
+model Sale {
+  id         String   @id @default(uuid())
+  itemTypeId String
+  itemType   ItemType @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
+  quantity   Int
+  unitPrice  Int
+  totalPrice Int
+  buyerName  String?
+  sellerId   String
+  seller     User     @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+}
+
+model ActionLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model WebhookConfig {
+  id           String   @id @default(uuid())
+  discordUrl   String?
+  saleEvents   Boolean  @default(true)
+  itemEvents   Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

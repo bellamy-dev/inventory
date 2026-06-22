@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gta-bg: #0f172a;
+  --color-gta-surface: #1e293b;
+  --color-gta-surface-hover: #334155;
+  --color-gta-border: #334155;
+  --color-gta-text: #e2e8f0;
+  --color-gta-text-dim: #94a3b8;
+  --color-gta-accent: #3b82f6;
+  --color-gta-accent-hover: #2563eb;
+  --color-gta-danger: #ef4444;
+  --color-gta-success: #22c55e;
+  --color-gta-warning: #f59e0b;
+}
+
+body {
+  background-color: var(--color-gta-bg);
+  color: var(--color-gta-text);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-gta-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gta-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gta-text-dim);
+}
+
+@layer utilities {
+  .gta-cell {
+    @apply relative flex flex-col items-center justify-center rounded-lg border-2 bg-gta-surface p-2 transition-all duration-150 hover:bg-gta-surface-hover cursor-pointer select-none;
+  }
+  .gta-cell-selected {
+    @apply ring-2 ring-gta-accent ring-offset-2 ring-offset-gta-bg;
+  }
+  .gta-btn-primary {
+    @apply rounded-lg bg-gta-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gta-accent-hover disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .gta-btn-danger {
+    @apply rounded-lg bg-gta-danger px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .gta-btn-ghost {
+    @apply rounded-lg px-4 py-2 text-sm font-medium text-gta-text-dim transition-colors hover:bg-gta-surface-hover hover:text-gta-text;
+  }
+  .gta-input {
+    @apply w-full rounded-lg border border-gta-border bg-gta-surface px-3 py-2 text-sm text-gta-text placeholder-gta-text-dim outline-none transition-colors focus:border-gta-accent;
+  }
+  .gta-card {
+    @apply rounded-xl border border-gta-border bg-gta-surface p-6;
+  }
+}
