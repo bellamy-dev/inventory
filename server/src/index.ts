@@ -5,6 +5,7 @@ import path from "path";
 import { env } from "./config/env";
 import { corsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
+import { addClient } from "./events";
 
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/users";
@@ -16,6 +17,8 @@ import stockRoutes from "./routes/stock";
 import saleRoutes from "./routes/sales";
 import logRoutes from "./routes/logs";
 import webhookRoutes from "./routes/webhook";
+import harvestRoutes from "./routes/harvests";
+import vehicleRoutes from "./routes/vehicles";
 
 const app = express();
 
@@ -25,6 +28,12 @@ app.use(cookieParser());
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// SSE endpoint
+app.get("/api/events", (req, res) => {
+  const userId = (req.query.userId as string) || undefined;
+  addClient(res, userId);
+});
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -37,6 +46,8 @@ app.use("/api/stock", stockRoutes);
 app.use("/api/sales", saleRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/webhook", webhookRoutes);
+app.use("/api/harvests", harvestRoutes);
+app.use("/api/vehicles", vehicleRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

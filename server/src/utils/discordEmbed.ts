@@ -1,17 +1,19 @@
 import axios from "axios";
 
-export type DiscordEventType = "sale" | "item_created" | "item_deleted";
+export type DiscordEventType = "sale" | "item_created" | "item_deleted" | "harvest";
 
 const EVENT_COLORS: Record<DiscordEventType, number> = {
   sale: 0x3b82f6,
   item_created: 0x22c55e,
   item_deleted: 0xef4444,
+  harvest: 0x22c55e,
 };
 
 const EVENT_TITLES: Record<DiscordEventType, string> = {
   sale: "Vente effectuée",
   item_created: "Objet créé",
   item_deleted: "Objet supprimé",
+  harvest: "Récolte validée",
 };
 
 interface EmbedField {

@@ -5,6 +5,7 @@ import { Permission } from "../types";
 import { createSale, getSales, getSaleStats, deleteSale } from "../services/sale.service";
 import { createLog } from "../services/log.service";
 import { notifySale } from "../services/webhook.service";
+import { broadcast } from "../events";
 
 const router = Router();
 
@@ -45,6 +46,8 @@ router.post(
         req.user!.username,
         (sale.itemType as any).imageUrl
       ).catch(() => {});
+
+      broadcast("stock-change", { type: "stock-change", action: "sale", userId: req.user!.userId });
 
       res.status(201).json({ sale });
     } catch (error) {
@@ -109,6 +112,8 @@ router.delete(
         totalPrice: sale.totalPrice,
         saleId: sale.id,
       });
+
+      broadcast("stock-change", { type: "stock-change", action: "sale-delete", userId: req.user!.userId });
 
       res.json({ message: "Vente supprimée", sale });
     } catch (error) {

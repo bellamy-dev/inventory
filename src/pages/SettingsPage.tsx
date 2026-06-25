@@ -20,6 +20,7 @@ export function SettingsPage() {
   const [url, setUrl] = useState("");
   const [saleEvents, setSaleEvents] = useState(true);
   const [itemEvents, setItemEvents] = useState(true);
+  const [harvestEvents, setHarvestEvents] = useState(true);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCatName, setNewCatName] = useState("");
@@ -45,6 +46,7 @@ export function SettingsPage() {
       setUrl(c.discordUrl || "");
       setSaleEvents(c.saleEvents);
       setItemEvents(c.itemEvents);
+      setHarvestEvents(c.harvestEvents);
       setCategories(cats);
       setRarities(rars);
     } catch {
@@ -65,6 +67,7 @@ export function SettingsPage() {
         discordUrl: url || undefined,
         saleEvents,
         itemEvents,
+        harvestEvents,
       });
       setConfig(updated);
       toast.success("Paramètres enregistrés !");
@@ -191,6 +194,11 @@ export function SettingsPage() {
               checked={itemEvents}
               onChange={setItemEvents}
               label="Notifications de création/suppression d'objet"
+            />
+            <Toggle
+              checked={harvestEvents}
+              onChange={setHarvestEvents}
+              label="Notifications de récolte validée"
             />
           </div>
 

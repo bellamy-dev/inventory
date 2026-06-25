@@ -20,6 +20,13 @@ import {
   ShieldCheck,
   Settings,
   ArrowUpDown,
+  Sprout,
+  CheckCircle,
+  XCircle,
+  DollarSign,
+  Undo2,
+  Car,
+  ArrowRightLeft,
 } from "lucide-react";
 
 interface LogDetails {
@@ -42,6 +49,9 @@ interface LogDetails {
   discordUrl?: string;
   saleEvents?: boolean;
   itemEvents?: boolean;
+  vehicleName?: string;
+  fromName?: string;
+  toName?: string;
   [key: string]: unknown;
 }
 
@@ -179,6 +189,65 @@ const ACTION_CONFIG: Record<
     icon: Settings,
     format: (d) =>
       d.discordUrl === "Configuré" ? "URL configurée" : "Configuration mise à jour",
+  },
+  HARVEST_DECLARED: {
+    label: "Récolte déclarée",
+    color: "#f59e0b",
+    icon: Sprout,
+    format: (d) => `${d.itemName || "?"} x${d.quantity || 0}`,
+  },
+  HARVEST_APPROVED: {
+    label: "Récolte validée",
+    color: "#22c55e",
+    icon: CheckCircle,
+    format: (d) => {
+      const parts = [`${d.itemName || "?"} x${d.quantity || 0}`];
+      parts.push(`${d.memberUsername || "?"}`);
+      if (d.payoutAmount != null) parts.push(`+${d.payoutAmount}$`);
+      return parts.join(" — ");
+    },
+  },
+  HARVEST_REJECTED: {
+    label: "Récolte refusée",
+    color: "#ef4444",
+    icon: XCircle,
+    format: (d) => `${d.itemName || "?"} x${d.quantity || 0} — ${d.memberUsername || "?"}`,
+  },
+  HARVEST_MARKED_PAID: {
+    label: "Paiement effectué",
+    color: "#22c55e",
+    icon: DollarSign,
+    format: (d) => `${d.memberUsername || "?"} — ${d.amount?.toLocaleString("fr-FR") || 0}$`,
+  },
+  HARVEST_REVIEW_CANCELLED: {
+    label: "Décision annulée",
+    color: "#f59e0b",
+    icon: Undo2,
+    format: (d) => `${d.itemName || "?"} x${d.quantity || 0}`,
+  },
+  VEHICLE_CREATED: {
+    label: "Véhicule créé",
+    color: "#22c55e",
+    icon: Car,
+    format: (d) => d.vehicleName || "?",
+  },
+  VEHICLE_DELETED: {
+    label: "Véhicule supprimé",
+    color: "#ef4444",
+    icon: Car,
+    format: (d) => d.vehicleName || "Inconnu",
+  },
+  ITEM_MOVED: {
+    label: "Objet déplacé",
+    color: "#3b82f6",
+    icon: ArrowRightLeft,
+    format: (d) => {
+      const name = d.itemName || "Inconnu";
+      const qty = d.quantity || 0;
+      const from = d.fromName || "?";
+      const to = d.toName || "?";
+      return `${name} x${qty} — ${from} → ${to}`;
+    },
   },
 };
 

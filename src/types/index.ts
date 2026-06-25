@@ -38,6 +38,8 @@ export enum Permission {
   ROLES_MANAGE = "ROLES_MANAGE",
   WEBHOOK_CONFIGURE = "WEBHOOK_CONFIGURE",
   LOGS_VIEW = "LOGS_VIEW",
+  HARVEST_DECLARE = "HARVEST_DECLARE",
+  HARVEST_VALIDATE = "HARVEST_VALIDATE",
 }
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
@@ -51,6 +53,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   [Permission.ROLES_MANAGE]: "Gérer les rôles et permissions",
   [Permission.WEBHOOK_CONFIGURE]: "Configurer le webhook Discord",
   [Permission.LOGS_VIEW]: "Voir les logs d'actions sensibles",
+  [Permission.HARVEST_DECLARE]: "Déclarer une récolte",
+  [Permission.HARVEST_VALIDATE]: "Valider les récoltes et gérer les paiements",
 };
 
 export interface Category {
@@ -80,6 +84,8 @@ export interface ItemType {
   maxStock: number | null;
   lowStockAlert: number | null;
   stockItems: StockItem | null;
+  harvestCommissionPercent: number | null;
+  harvestable: boolean;
 }
 
 export interface StockItem {
@@ -117,6 +123,7 @@ export interface WebhookConfig {
   discordUrl: string | null;
   saleEvents: boolean;
   itemEvents: boolean;
+  harvestEvents: boolean;
 }
 
 export interface UserWithRole {
@@ -151,4 +158,60 @@ export interface UserListItem {
     position: number;
   };
   createdAt: string;
+}
+
+export interface HarvestEntry {
+  id: string;
+  itemTypeId: string;
+  itemType: ItemType;
+  userId: string;
+  user: { id: string; username: string; avatarUrl?: string | null };
+  quantity: number;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  commissionPercent: number;
+  totalValue: number | null;
+  payoutAmount: number | null;
+  reviewedById: string | null;
+  reviewedBy: { id: string; username: string } | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
+export interface PayoutHistory {
+  id: string;
+  userId: string;
+  user: { id: string; username: string };
+  amount: number;
+  paidById: string;
+  paidBy: { id: string; username: string };
+  paidAt: string;
+}
+
+export interface HarvestStats {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  harvestCommissionPercent: number | null;
+  pendingPayout: number;
+  role: { id: string; name: string; color: string };
+}
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  maxWeight: number;
+  position: number;
+  items: VehicleStockItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VehicleStockItem {
+  id: string;
+  vehicleId: string;
+  itemTypeId: string;
+  quantity: number;
+  position: number;
+  itemType: ItemType;
 }

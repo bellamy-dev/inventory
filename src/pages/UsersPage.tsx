@@ -8,11 +8,13 @@ import { Modal } from "../components/ui/Modal";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { usersApi } from "../api/users.api";
 import { rolesApi } from "../api/roles.api";
+import { usePermissions } from "../hooks/usePermissions";
 import { UserListItem, Role } from "../types";
 import toast from "react-hot-toast";
 import { UserPlus, Trash2, Shield } from "lucide-react";
 
 export function UsersPage() {
+  const { canManageRoles } = usePermissions();
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,10 @@ export function UsersPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [u, r] = await Promise.all([usersApi.getAll(), rolesApi.getAll()]);
+      const [u, r] = await Promise.all([
+        usersApi.getAll(),
+        canManageRoles ? rolesApi.getAll() : Promise.resolve([] as Role[]),
+      ]);
       setUsers(u);
       setRoles(r);
       if (r.length > 0 && !newRoleId) setNewRoleId(r[r.length - 1].id);
@@ -35,7 +40,7 @@ export function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canManageRoles]);
 
   useEffect(() => {
     loadData();
@@ -101,7 +106,7 @@ export function UsersPage() {
         title="Gestion des utilisateurs"
         subtitle={`${users.length} compte(s)`}
         actions={
-          <Button onClick={() => setCreateModal(true)}>
+          <Button onClick={() => setCreateModal(true)} disabled={!canManageRoles}>
             <UserPlus className="h-4 w-4 mr-2 inline" />
             Créer un compte
           </Button>
@@ -137,12 +142,17 @@ export function UsersPage() {
                     className="gta-input w-auto text-xs py-1"
                     value={user.role.id}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                    disabled={!canManageRoles}
                   >
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
+                    {roles.length > 0 ? (
+                      roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value={user.role.id}>{user.role.name}</option>
+                    )}
                   </select>
                 </td>
                 <td className="py-3 px-4 text-gta-text-dim text-xs">

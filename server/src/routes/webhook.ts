@@ -31,17 +31,19 @@ router.put(
   requirePermission(Permission.WEBHOOK_CONFIGURE),
   async (req: AuthRequest, res: Response) => {
     try {
-      const { discordUrl, saleEvents, itemEvents } = req.body;
+      const { discordUrl, saleEvents, itemEvents, harvestEvents } = req.body;
       const config = await updateWebhookConfig({
         discordUrl,
         saleEvents,
         itemEvents,
+        harvestEvents,
       });
 
       await createLog(req.user!.userId, "WEBHOOK_UPDATED", {
         discordUrl: discordUrl ? "Configuré" : "Non configuré",
         saleEvents,
         itemEvents,
+        harvestEvents,
       });
 
       res.json({ config });

@@ -41,6 +41,8 @@ export async function createItemType(data: {
   unlimitedStock?: boolean;
   maxStock?: number | null;
   lowStockAlert?: number | null;
+  harvestCommissionPercent?: number | null;
+  harvestable?: boolean;
 }) {
   // Check unique name within category
   const existing = await prisma.itemType.findUnique({
@@ -81,6 +83,8 @@ export async function updateItemType(
     unlimitedStock?: boolean;
     maxStock?: number | null;
     lowStockAlert?: number | null;
+    harvestCommissionPercent?: number | null;
+    harvestable?: boolean;
   }
 ) {
   const item = await prisma.itemType.findUnique({ where: { id } });

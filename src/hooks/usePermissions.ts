@@ -17,5 +17,7 @@ export function usePermissions() {
     canManageRoles: hasPermission(Permission.ROLES_MANAGE),
     canConfigureWebhook: hasPermission(Permission.WEBHOOK_CONFIGURE),
     canViewLogs: hasPermission(Permission.LOGS_VIEW),
+    canDeclareHarvest: hasPermission(Permission.HARVEST_DECLARE),
+    canValidateHarvest: hasPermission(Permission.HARVEST_VALIDATE),
   };
 }

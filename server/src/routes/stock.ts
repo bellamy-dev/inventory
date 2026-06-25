@@ -4,6 +4,7 @@ import { requirePermission } from "../middleware/permission";
 import { Permission } from "../types";
 import { getStockItems, updateStock, addStock, removeStock, updatePositions } from "../services/stock.service";
 import { createLog } from "../services/log.service";
+import { broadcast } from "../events";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -66,6 +67,8 @@ router.put(
         quantity,
       });
 
+      broadcast("stock-change", { type: "stock-change", action: "update", userId: req.user!.userId });
+
       res.json({ stock });
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
@@ -98,6 +101,8 @@ router.post(
         imageUrl: item?.imageUrl,
         amount,
       });
+
+      broadcast("stock-change", { type: "stock-change", action: "add", userId: req.user!.userId });
 
       res.json({ stock });
     } catch (error) {
@@ -132,6 +137,8 @@ router.post(
         amount,
         reason: reason || "Retiré du stock",
       });
+
+      broadcast("stock-change", { type: "stock-change", action: "remove", userId: req.user!.userId });
 
       res.json({ stock });
     } catch (error) {

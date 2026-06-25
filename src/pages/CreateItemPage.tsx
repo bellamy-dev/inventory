@@ -10,11 +10,14 @@ import { categoriesApi } from "../api/categories.api";
 import { raritiesApi } from "../api/rarities.api";
 import { itemTypesApi } from "../api/itemTypes.api";
 import { Category, Rarity } from "../types";
+import { usePermissions } from "../hooks/usePermissions";
+import { parseNumericInput } from "../lib/utils";
 import toast from "react-hot-toast";
 import { Upload, Package } from "lucide-react";
 
 export function CreateItemPage() {
   const navigate = useNavigate();
+  const { canManageRoles } = usePermissions();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [rarities, setRarities] = useState<Rarity[]>([]);
@@ -28,6 +31,8 @@ export function CreateItemPage() {
   const [unlimitedStock, setUnlimitedStock] = useState(false);
   const [maxStock, setMaxStock] = useState("");
   const [lowStockAlert, setLowStockAlert] = useState("");
+  const [harvestCommissionPercent, setHarvestCommissionPercent] = useState("");
+  const [harvestable, setHarvestable] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -45,6 +50,11 @@ export function CreateItemPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("L'image est trop volumineuse (max 10 Mo)");
+        e.target.value = "";
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
@@ -71,6 +81,8 @@ export function CreateItemPage() {
       fd.append("unlimitedStock", String(unlimitedStock));
       if (maxStock) fd.append("maxStock", maxStock);
       if (lowStockAlert) fd.append("lowStockAlert", lowStockAlert);
+      if (harvestCommissionPercent) fd.append("harvestCommissionPercent", harvestCommissionPercent);
+      fd.append("harvestable", String(harvestable));
       if (imageFile) fd.append("image", imageFile);
 
       await itemTypesApi.create(fd);
@@ -144,25 +156,31 @@ export function CreateItemPage() {
           <div className="grid grid-cols-3 gap-4">
             <Input
               label="Poids (kg)"
-              type="number"
+              type="text"
+              inputMode="decimal"
               step="0.1"
               min="0"
+              placeholder="Ex: 0,25"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => setWeight(parseNumericInput(e.target.value))}
             />
             <Input
               label="Prix d'achat ($)"
-              type="number"
+              type="text"
+              inputMode="decimal"
               min="0"
+              placeholder="Ex: 10,50"
               value={buyPrice}
-              onChange={(e) => setBuyPrice(e.target.value)}
+              onChange={(e) => setBuyPrice(parseNumericInput(e.target.value))}
             />
             <Input
               label="Prix de vente ($)"
-              type="number"
+              type="text"
+              inputMode="decimal"
               min="0"
+              placeholder="Ex: 15,00"
               value={sellPrice}
-              onChange={(e) => setSellPrice(e.target.value)}
+              onChange={(e) => setSellPrice(parseNumericInput(e.target.value))}
             />
           </div>
 
@@ -192,6 +210,34 @@ export function CreateItemPage() {
               onChange={(e) => setLowStockAlert(e.target.value)}
             />
           </div>
+
+          {/* Harvest Commission */}
+          {canManageRoles && (
+            <div className="border-t border-gta-border pt-4 space-y-3">
+              <Toggle
+                checked={harvestable}
+                onChange={setHarvestable}
+                label="Objet récoltable"
+              />
+              {harvestable && (
+                <>
+                  <Input
+                    label="Commission de récolte par défaut (%)"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    placeholder="Ex: 10"
+                    value={harvestCommissionPercent}
+                    onChange={(e) => setHarvestCommissionPercent(e.target.value)}
+                  />
+                  <p className="text-xs text-gta-text-dim">
+                    Pourcentage reversé aux membres quand cet objet est récolté. Peut être personnalisé par membre.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Submit */}
           <div className="flex justify-end gap-3 pt-4 border-t border-gta-border">

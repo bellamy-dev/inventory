@@ -21,6 +21,7 @@ export async function updateWebhookConfig(data: {
   discordUrl?: string;
   saleEvents?: boolean;
   itemEvents?: boolean;
+  harvestEvents?: boolean;
 }) {
   let config = await prisma.webhookConfig.findFirst();
   if (!config) {
@@ -107,5 +108,30 @@ export async function notifyItemDeleted(
   ];
 
   const payload = buildDiscordEmbed("item_deleted", fields);
+  return sendDiscordWebhook(config.discordUrl, payload);
+}
+
+export async function notifyHarvestValidated(
+  memberName: string,
+  itemName: string,
+  quantity: number,
+  commissionPercent: number,
+  totalValue: number,
+  payoutAmount: number,
+  imageUrl?: string | null
+) {
+  const config = await getWebhookConfig();
+  if (!config.discordUrl || !config.harvestEvents) return false;
+
+  const fields = [
+    { name: "Membre", value: memberName, inline: true },
+    { name: "Objet", value: itemName, inline: true },
+    { name: "Quantité", value: `x${quantity}`, inline: true },
+    { name: "Commission", value: `${commissionPercent}%`, inline: true },
+    { name: "Valeur totale", value: `${totalValue}$`, inline: true },
+    { name: "Montant versé", value: `${payoutAmount}$`, inline: true },
+  ];
+
+  const payload = buildDiscordEmbed("harvest", fields, imageUrl || undefined);
   return sendDiscordWebhook(config.discordUrl, payload);
 }

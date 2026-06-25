@@ -16,6 +16,10 @@ export function formatWeight(kg: number): string {
   return kg.toFixed(1) + " kg";
 }
 
+export function parseNumericInput(value: string): string {
+  return value.replace(",", ".");
+}
+
 export function calcMargin(sellPrice: number, buyPrice: number, quantity: number): number {
   return (sellPrice - buyPrice) * quantity;
 }

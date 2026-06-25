@@ -7,6 +7,7 @@ export const webhookApi = {
     discordUrl?: string;
     saleEvents?: boolean;
     itemEvents?: boolean;
+    harvestEvents?: boolean;
   }) => api.put("/webhook", data).then((r) => r.data.config),
 
   test: () => api.post("/webhook/test").then((r) => r.data),

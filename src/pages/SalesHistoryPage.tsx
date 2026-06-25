@@ -8,11 +8,13 @@ import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { salesApi } from "../api/sales.api";
 import { usersApi } from "../api/users.api";
 import { itemTypesApi } from "../api/itemTypes.api";
+import { usePermissions } from "../hooks/usePermissions";
 import { Sale, SaleStats, UserListItem, ItemType } from "../types";
 import toast from "react-hot-toast";
 import { Download, TrendingUp, TrendingDown, DollarSign, BarChart3, Trash2 } from "lucide-react";
 
 export function SalesHistoryPage() {
+  const { canManageUsers } = usePermissions();
   const [sales, setSales] = useState<Sale[]>([]);
   const [stats, setStats] = useState<SaleStats | null>(null);
   const [users, setUsers] = useState<UserListItem[]>([]);
@@ -31,7 +33,7 @@ export function SalesHistoryPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [salesResult, statsResult, usersList, itemsList] = await Promise.all([
+      const [salesResult, statsResult, itemsList] = await Promise.all([
         salesApi.getAll({
           startDate: filterDateStart || undefined,
           endDate: filterDateEnd || undefined,
@@ -44,20 +46,23 @@ export function SalesHistoryPage() {
           startDate: filterDateStart || undefined,
           endDate: filterDateEnd || undefined,
         }),
-        usersApi.getAll(),
         itemTypesApi.getAll(),
       ]);
       setSales(salesResult.data);
       setTotalPages(salesResult.totalPages);
       setStats(statsResult);
-      setUsers(usersList);
       setItems(itemsList);
+
+      if (canManageUsers) {
+        const usersList = await usersApi.getAll();
+        setUsers(usersList);
+      }
     } catch {
       toast.error("Erreur lors du chargement");
     } finally {
       setLoading(false);
     }
-  }, [page, filterDateStart, filterDateEnd, filterSeller, filterItem]);
+  }, [page, filterDateStart, filterDateEnd, filterSeller, filterItem, canManageUsers]);
 
   useEffect(() => {
     loadData();
@@ -159,7 +164,7 @@ export function SalesHistoryPage() {
 
       {/* Filters */}
       <div className="gta-card mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={`grid gap-4 ${canManageUsers ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"}`}>
           <Input
             label="Date début"
             type="date"
@@ -172,15 +177,17 @@ export function SalesHistoryPage() {
             value={filterDateEnd}
             onChange={(e) => { setFilterDateEnd(e.target.value); setPage(1); }}
           />
-          <Select
-            label="Vendeur"
-            options={[
-              { value: "", label: "Tous" },
-              ...users.map((u) => ({ value: u.id, label: u.username })),
-            ]}
-            value={filterSeller}
-            onChange={(e) => { setFilterSeller(e.target.value); setPage(1); }}
-          />
+          {canManageUsers && (
+            <Select
+              label="Vendeur"
+              options={[
+                { value: "", label: "Tous" },
+                ...users.map((u) => ({ value: u.id, label: u.username })),
+              ]}
+              value={filterSeller}
+              onChange={(e) => { setFilterSeller(e.target.value); setPage(1); }}
+            />
+          )}
           <Select
             label="Objet"
             options={[

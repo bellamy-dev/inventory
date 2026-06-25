@@ -8,15 +8,23 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  username     String   @unique
-  passwordHash String
-  roleId       String
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  sales        Sale[]
-  actionLogs   ActionLog[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                       String          @id @default(uuid())
+  username                 String          @unique
+  passwordHash             String?
+  discordId                String?         @unique
+  avatarUrl                String?
+  roleId                   String
+  role                     Role            @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sales                    Sale[]
+  actionLogs               ActionLog[]
+  harvestCommissionPercent Float?
+  pendingPayout            Float           @default(0)
+  harvestEntries           HarvestEntry[]
+  reviewedEntries          HarvestEntry[]  @relation("HarvestReviewed")
+  payoutsReceived          PayoutHistory[] @relation("PayoutReceiver")
+  payoutsMade              PayoutHistory[] @relation("PayoutPayer")
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
 }
 
 model Role {
@@ -65,15 +73,19 @@ model ItemType {
   rarityId       String
   rarity         Rarity     @relation(fields: [rarityId], references: [id], onDelete: Restrict)
   weight         Float      @default(0)
-  buyPrice       Int        @default(0)
-  sellPrice      Int        @default(0)
+  buyPrice       Float      @default(0)
+  sellPrice      Float      @default(0)
   unlimitedStock Boolean    @default(false)
   maxStock       Int?
   lowStockAlert  Int?
-  stockItems     StockItem?
-  sales          Sale[]
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  harvestable    Boolean    @default(false)
+  stockItems                 StockItem?
+  vehicleStockItems          VehicleStockItem[]
+  sales                      Sale[]
+  harvestCommissionPercent   Float?
+  harvestEntries             HarvestEntry[]
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
 
   @@unique([name, categoryId])
 }
@@ -112,10 +124,62 @@ model ActionLog {
 }
 
 model WebhookConfig {
-  id           String   @id @default(uuid())
-  discordUrl   String?
-  saleEvents   Boolean  @default(true)
-  itemEvents   Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(uuid())
+  discordUrl    String?
+  saleEvents    Boolean  @default(true)
+  itemEvents    Boolean  @default(true)
+  harvestEvents Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HarvestEntry {
+  id                String   @id @default(uuid())
+  itemTypeId        String
+  itemType          ItemType @relation(fields: [itemTypeId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  quantity          Int
+  status            String   @default("PENDING")
+  commissionPercent Float
+  totalValue        Float?
+  payoutAmount      Float?
+  reviewedById      String?
+  reviewedBy        User?    @relation("HarvestReviewed", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?
+  createdAt         DateTime @default(now())
+}
+
+model PayoutHistory {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation("PayoutReceiver", fields: [userId], references: [id], onDelete: Restrict)
+  amount   Float
+  paidById String
+  paidBy   User     @relation("PayoutPayer", fields: [paidById], references: [id], onDelete: Restrict)
+  paidAt   DateTime @default(now())
+}
+
+model Vehicle {
+  id        String           @id @default(uuid())
+  name      String           @unique
+  imageUrl  String?
+  maxWeight Float            @default(300)
+  position  Int              @default(0)
+  items     VehicleStockItem[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model VehicleStockItem {
+  id         String   @id @default(uuid())
+  vehicleId  String
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  itemTypeId String
+  itemType   ItemType @relation(fields: [itemTypeId], references: [id], onDelete: Cascade)
+  quantity   Int      @default(0)
+  position   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([vehicleId, itemTypeId])
 }

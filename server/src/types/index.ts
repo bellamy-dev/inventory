@@ -9,6 +9,8 @@ export enum Permission {
   ROLES_MANAGE = "ROLES_MANAGE",
   WEBHOOK_CONFIGURE = "WEBHOOK_CONFIGURE",
   LOGS_VIEW = "LOGS_VIEW",
+  HARVEST_DECLARE = "HARVEST_DECLARE",
+  HARVEST_VALIDATE = "HARVEST_VALIDATE",
 }
 
 export const ALL_PERMISSIONS = Object.values(Permission);
@@ -24,6 +26,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   [Permission.ROLES_MANAGE]: "Gérer les rôles et permissions",
   [Permission.WEBHOOK_CONFIGURE]: "Configurer le webhook Discord",
   [Permission.LOGS_VIEW]: "Voir les logs d'actions sensibles",
+  [Permission.HARVEST_DECLARE]: "Déclarer une récolte",
+  [Permission.HARVEST_VALIDATE]: "Valider les récoltes et gérer les paiements",
 };
 
 export interface JwtPayload {

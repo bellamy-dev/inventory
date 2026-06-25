@@ -13,6 +13,8 @@ const ALL_PERMISSIONS = [
   "ROLES_MANAGE",
   "WEBHOOK_CONFIGURE",
   "LOGS_VIEW",
+  "HARVEST_DECLARE",
+  "HARVEST_VALIDATE",
 ];
 
 async function main() {
@@ -73,7 +75,7 @@ async function main() {
   }
 
   // Assign permissions to Membre
-  const membrePermissions = ["SALES_HISTORY_VIEW"];
+  const membrePermissions = ["SALES_HISTORY_VIEW", "HARVEST_DECLARE"];
   for (const perm of membrePermissions) {
     await prisma.rolePermission.upsert({
       where: { roleId_permission: { roleId: membreRole.id, permission: perm } },
@@ -129,6 +131,7 @@ async function main() {
       discordUrl: null,
       saleEvents: true,
       itemEvents: true,
+      harvestEvents: true,
     },
   });
   console.log("Default webhook config created.");

@@ -11,6 +11,7 @@ import {
 } from "../services/item.service";
 import { createLog } from "../services/log.service";
 import { notifyItemCreated, notifyItemDeleted } from "../services/webhook.service";
+import { broadcast } from "../events";
 import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -80,11 +81,15 @@ router.post(
         categoryId: req.body.categoryId,
         rarityId: req.body.rarityId,
         weight: parseFloat(req.body.weight) || 0,
-        buyPrice: parseInt(req.body.buyPrice) || 0,
-        sellPrice: parseInt(req.body.sellPrice) || 0,
+        buyPrice: parseFloat(req.body.buyPrice) || 0,
+        sellPrice: parseFloat(req.body.sellPrice) || 0,
         unlimitedStock: req.body.unlimitedStock === "true",
         maxStock: req.body.maxStock ? parseInt(req.body.maxStock) : null,
         lowStockAlert: req.body.lowStockAlert ? parseInt(req.body.lowStockAlert) : null,
+        harvestCommissionPercent: req.body.harvestCommissionPercent
+          ? parseFloat(req.body.harvestCommissionPercent)
+          : null,
+        harvestable: req.body.harvestable === "true",
       };
 
       if (!data.name || !data.categoryId || !data.rarityId) {
@@ -104,6 +109,8 @@ router.post(
 
       // Discord webhook (non-blocking)
       notifyItemCreated(item.name, (item as any).category?.name, item.imageUrl).catch(() => {});
+
+      broadcast("stock-change", { type: "stock-change", action: "item-create", userId: req.user!.userId });
 
       res.status(201).json({ item });
     } catch (error) {
@@ -125,8 +132,8 @@ router.put(
       if (req.body.categoryId) data.categoryId = req.body.categoryId;
       if (req.body.rarityId) data.rarityId = req.body.rarityId;
       if (req.body.weight !== undefined) data.weight = parseFloat(req.body.weight);
-      if (req.body.buyPrice !== undefined) data.buyPrice = parseInt(req.body.buyPrice);
-      if (req.body.sellPrice !== undefined) data.sellPrice = parseInt(req.body.sellPrice);
+      if (req.body.buyPrice !== undefined) data.buyPrice = parseFloat(req.body.buyPrice);
+      if (req.body.sellPrice !== undefined) data.sellPrice = parseFloat(req.body.sellPrice);
       if (req.body.unlimitedStock !== undefined)
         data.unlimitedStock = req.body.unlimitedStock === "true";
       if (req.body.maxStock !== undefined)
@@ -134,6 +141,12 @@ router.put(
       if (req.body.lowStockAlert !== undefined)
         data.lowStockAlert = req.body.lowStockAlert ? parseInt(req.body.lowStockAlert) : undefined;
       if (req.body.iconKey !== undefined) data.iconKey = req.body.iconKey;
+      if (req.body.harvestCommissionPercent !== undefined)
+        data.harvestCommissionPercent = req.body.harvestCommissionPercent
+          ? parseFloat(req.body.harvestCommissionPercent)
+          : null;
+      if (req.body.harvestable !== undefined)
+        data.harvestable = req.body.harvestable === "true";
 
       if (req.file) {
         data.imageUrl = `/uploads/${req.file.filename}`;
@@ -146,6 +159,8 @@ router.put(
         itemId: item.id,
         imageUrl: item.imageUrl,
       });
+
+      broadcast("stock-change", { type: "stock-change", action: "item-update", userId: req.user!.userId });
 
       res.json({ item });
     } catch (error) {
@@ -176,6 +191,8 @@ router.delete(
       });
 
       notifyItemDeleted(item.name, (item as any).category?.name).catch(() => {});
+
+      broadcast("stock-change", { type: "stock-change", action: "item-delete", userId: req.user!.userId });
 
       res.json({ message: "Objet supprimé" });
     } catch (error) {

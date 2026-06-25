@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { usePermissions } from "../../hooks/usePermissions";
+import { Permission } from "../../types";
 import {
   Package,
   PlusCircle,
@@ -9,17 +10,25 @@ import {
   FileText,
   Settings,
   LogOut,
+  Sprout,
+  ClipboardCheck,
+  DollarSign,
+  Car,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
-const navItems = [
+const navItems: Array<{ to: string; icon: typeof Package; label: string; permission: Permission | null }> = [
   { to: "/inventaire", icon: Package, label: "Inventaire", permission: null },
-  { to: "/creer-objet", icon: PlusCircle, label: "Créer un objet", permission: "ITEM_CREATE" as const },
-  { to: "/historique", icon: History, label: "Historique des ventes", permission: "SALES_HISTORY_VIEW" as const },
-  { to: "/utilisateurs", icon: Users, label: "Utilisateurs", permission: "USERS_MANAGE" as const },
-  { to: "/roles", icon: Shield, label: "Rôles", permission: "ROLES_MANAGE" as const },
-  { to: "/logs", icon: FileText, label: "Logs", permission: "LOGS_VIEW" as const },
-  { to: "/parametres", icon: Settings, label: "Paramètres", permission: "WEBHOOK_CONFIGURE" as const },
+  { to: "/vehicules", icon: Car, label: "Véhicules", permission: null },
+  { to: "/creer-objet", icon: PlusCircle, label: "Créer un objet", permission: Permission.ITEM_CREATE },
+  { to: "/historique", icon: History, label: "Historique des ventes", permission: Permission.SALES_HISTORY_VIEW },
+  { to: "/mes-recoltes", icon: Sprout, label: "Mes récoltes", permission: Permission.HARVEST_DECLARE },
+  { to: "/validation-recoltes", icon: ClipboardCheck, label: "Validation récoltes", permission: Permission.HARVEST_VALIDATE },
+  { to: "/stats-paie", icon: DollarSign, label: "Statistiques & Paie", permission: null },
+  { to: "/utilisateurs", icon: Users, label: "Utilisateurs", permission: Permission.USERS_MANAGE },
+  { to: "/roles", icon: Shield, label: "Rôles", permission: Permission.ROLES_MANAGE },
+  { to: "/logs", icon: FileText, label: "Logs", permission: Permission.LOGS_VIEW },
+  { to: "/parametres", icon: Settings, label: "Paramètres", permission: Permission.WEBHOOK_CONFIGURE },
 ];
 
 export function Sidebar() {
